@@ -1,0 +1,46 @@
+{
+	"compiler": {
+		"version": "0.6.12+commit.27d51765"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"details": "Collection of functions related to the address type",
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"deusexmachina-bep20.sol": "Address"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"deusexmachina-bep20.sol": {
+			"keccak256": "0x2013b400b2c41565284a3b3cddfd9590024234e13f8f0b6c2fa5da1aababd12b",
+			"license": "No License",
+			"urls": [
+				"bzz-raw://4459b83b174f6a8915e996152fffcf7dda9f10de51703a6bae8cd825c248d8ad",
+				"dweb:/ipfs/QmNvirJViPTnfoAJ1LiVToVjzPjuWuiArzEAGaWFWjgE4c"
+			]
+		}
+	},
+	"version": 1
+}
