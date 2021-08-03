@@ -1,4 +1,11 @@
-//Deus Ex Machina - BEP20 SC - Binance Smart Chain
+ /**     oooooooooo.   oooooooooooo ooooo     ooo  .oooooo..o ooooooo  ooooo 
+  *     ` 888'   `Y8b  `888'     `8 `888'     `8' d8P'    `Y8  `8888    d8'  
+  *       888      888  888          888       8  Y88bo.         Y888..8P    
+  *       888      888  888oooo8     888       8   `"Y8888o.      `8888'     
+  *       888      888  888    "     888       8       `"Y88b    .8PY888.    
+  *       888     d88'  888       o  `88.    .8'  oo     .d8P   d8'  `888b   
+  *      o888bood8P'   o888ooooood8    `YbodP'    8""88888P'  o888o  o88888o 
+  */
 
 pragma solidity ^0.6.12;
 
@@ -21,7 +28,7 @@ interface IERC20 {
      * Emits a {Transfer} event.
      */
     function transfer(address recipient, uint256 amount) external returns (bool);
-
+    
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
      * allowed to spend on behalf of `owner` through {transferFrom}. This is
@@ -475,13 +482,10 @@ interface IUniswapV2Factory {
 
     function feeTo() external view returns (address);
     function feeToSetter() external view returns (address);
-
     function getPair(address tokenA, address tokenB) external view returns (address pair);
     function allPairs(uint) external view returns (address pair);
     function allPairsLength() external view returns (uint);
-
     function createPair(address tokenA, address tokenB) external returns (address pair);
-
     function setFeeTo(address) external;
     function setFeeToSetter(address) external;
 }
@@ -499,15 +503,12 @@ interface IUniswapV2Pair {
     function totalSupply() external view returns (uint);
     function balanceOf(address owner) external view returns (uint);
     function allowance(address owner, address spender) external view returns (uint);
-
     function approve(address spender, uint value) external returns (bool);
     function transfer(address to, uint value) external returns (bool);
     function transferFrom(address from, address to, uint value) external returns (bool);
-
     function DOMAIN_SEPARATOR() external view returns (bytes32);
     function PERMIT_TYPEHASH() external pure returns (bytes32);
     function nonces(address owner) external view returns (uint);
-
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
 
     event Mint(address indexed sender, uint amount0, uint amount1);
@@ -530,7 +531,6 @@ interface IUniswapV2Pair {
     function price0CumulativeLast() external view returns (uint);
     function price1CumulativeLast() external view returns (uint);
     function kLast() external view returns (uint);
-
     function mint(address to) external returns (uint liquidity);
     function burn(address to) external returns (uint amount0, uint amount1);
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
@@ -658,7 +658,6 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint deadline,
         bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external returns (uint amountETH);
-
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
@@ -681,6 +680,39 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     ) external;
 }
 
+// pragma solidity >=0.6.8;
+
+abstract contract ReentrancyGuard {
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    constructor () public {
+        _status = _NOT_ENTERED;
+    }
+
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _status = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = _NOT_ENTERED;
+    }
+
+    modifier isHuman() {
+        require(tx.origin == msg.sender, "sorry humans only");
+        _;
+    }
+}
+
+
 
     contract DeusExMachina is Context , IERC20, Ownable {
     using SafeMath for uint256;
@@ -689,32 +721,31 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     mapping (address => uint256) private _rOwned;
     mapping (address => uint256) private _tOwned;
     mapping (address => mapping (address => uint256)) private _allowances;
-
     mapping (address => bool) private _isExcludedFromFee;
-
     mapping (address => bool) private _isExcluded;
+    
     address[] private _excluded;
    
     uint256 private constant MAX = ~uint256(0);
     uint256 private _tTotal = 100 * 10**9 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
-
+    
     string private _name = "Deus Ex Machina";
     string private _symbol = "DEUSX";
+    
     uint8 private _decimals = 9;
     
     uint256 public _taxFee = 3;
     uint256 private _previousTaxFee = _taxFee;
-    
-    uint256 public _liquidityFee = 7;
+    uint256 public _liquidityFee = 6;
     uint256 private _previousLiquidityFee = _liquidityFee;
-
     uint256 public _burnFee = 0;
     uint256 private _previousBurnFee = _burnFee;
-
-    uint256 public _devFee = 0;
-    address public devWallet = ; //set following deployment as foundation wallet
+    uint256 public _devFee = 1;
+    
+    address public devWallet = 0x5DfAFF97403E86F07299a73B6bC0360dbB8E54AA;
+    
     uint256 private _previousDevFee = _devFee;
 
     IUniswapV2Router02 public immutable uniswapV2Router;
@@ -723,9 +754,9 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = false;
     
-    uint256 public _maxTxAmount = 10 * 10**6 * 10**9; //.0001% of total supply
-    uint256 private numTokensSellToAddToLiquidity = 1 * 10**6 * 10**9;
-    uint256 public _maxWalletToken = 1 * 10**9 * 10**9;
+    uint256 public _maxTxAmount = 100 * 10**6 * 10**9; //Max Transaction - 100 million - or 0.001 of total supply
+    uint256 private numTokensSellToAddToLiquidity = 100 * 10**6 * 10**9; //Number of tokens to Sell before Swap - 100 Million / if SwapAndLiquify enabled - or 0.001 of total supply
+    uint256 public _maxWalletToken = 1 * 10**9 * 10**9; //Max Wallet - 1 billion - or .01 of total supply
     
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
     event SwapAndLiquifyEnabledUpdated(bool enabled);
@@ -877,8 +908,19 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
-    
 
+    function setTaxFeePercent(uint256 taxFee) external onlyOwner() {
+        _taxFee = taxFee;
+    }
+
+    function setLiquidityFeePercent(uint256 liquidityFee) external onlyOwner() {
+        _liquidityFee = liquidityFee;
+    }
+
+    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
+        swapAndLiquifyEnabled = _enabled;
+        emit SwapAndLiquifyEnabledUpdated(_enabled);
+    }
     
      //to recieve BNB from uniswapV2Router when swaping
     receive() external payable {}
@@ -1141,38 +1183,27 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         _isExcludedFromFee[account] = false;
     }
     
-    //Call this function after finalizing the presale on DxSale
+    //Call this function to reinstate all fees
     function enableAllFees() external onlyOwner() {
         _taxFee = 3;
         _previousTaxFee = _taxFee;
-        _liquidityFee = 7;
+        _liquidityFee = 6;
         _previousLiquidityFee = _liquidityFee;
         _burnFee = 0;
         _previousBurnFee = _taxFee;
-        _devFee = 0;
+        _devFee = 1;
         _previousDevFee = _devFee;
     }
 
     function setDevWallet(address newWallet) external onlyOwner() {
         devWallet = newWallet;
     }
-   
-    function setMaxTxPercent(uint256 maxTxPercent) public {
-        require(maxTxPercent > 0, "Cannot set transaction amount less than 1 percent!");
-        _maxTxAmount = _tTotal.mul(maxTxPercent).div(
-            10**2
-        );
-    }
     
-    function setMaxWalletPercent(uint256 maxWalletPercent) public {
-        require(maxWalletPercent > 0, "Cannot set transaction amount less than 1 percent!");
-        _maxWalletToken = _tTotal.mul(maxWalletPercent).div(
-            10**2
-        );
-    }
-
-    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
-        swapAndLiquifyEnabled = _enabled;
-        emit SwapAndLiquifyEnabledUpdated(_enabled);
+  function withdrawToken(address _tokenContract, uint256 _amount) public onlyOwner  {
+        IERC20 tokenContract = IERC20(_tokenContract);
+        
+        // transfer the token from address of this contract
+        // to address of the user (executing the withdrawToken() function)
+        tokenContract.transfer(msg.sender, _amount);
     }
 }
